@@ -1,0 +1,1 @@
+Invoke-Command -ComputerName 'districtdc3.misd.wednet.edu' -ScriptBlock {Start-ScheduledTask -TaskName 'NoCA'}
