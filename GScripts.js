@@ -231,3 +231,76 @@ function mailCheck() {
 
 }
 
+//Script 5: Added a sheet to record any form submissions. Due to the nature of the the python script deleting records upon return
+//Needed a way to record historical data for a bit longer mainly for logging purposes
+function getRecord(e) {
+  //Point to the spreadsheet
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  //Get the individual sheet objects
+  const source_sheet = ss.getSheetByName('Form Responses 1');
+  if (!source_sheet) throw new Error(`Source sheet not found`);
+  const target_sheet = ss.getSheetByName('Historical Record');
+  if (!target_sheet) throw new Error(`Target sheet not found`);
+
+  if (!e || !e.values || !Array.isArray(e.values)) {
+    throw new Error("This function must be run by an On form submit trigger (missing e.values).");
+  }
+  
+  if (target_sheet.getLastRow() === 0) {
+    const header = source_sheet.getRange(1, 1, 1, source_sheet.getLastColumn()).getValues();
+    target_sheet.getRange(1, 1, 1, header[0].length).setValues(header);
+  }
+
+  target_sheet.appendRow(e.values);
+} 
+
+//Script 6: Delete the records if it has been over 30 days since they returned.
+//  Don't need permanent recording just long enough to investigate bugs or anything else.
+//Check if date is 30 days in the past
+function checkDates(return_date) {
+  const now = new Date();
+
+  //Confirm a Date object was read in from the sheet
+  if (return_date instanceof Date){
+
+    //Difference in Milliseconds converted to days
+    const timeDiff = now - return_date
+    const timeDiffDays = timeDiff / (1000 * 60 * 60 * 24)
+
+    //If the number of days is 30 or greater return true to delete
+    if(timeDiffDays >= 30){
+      console.log("return_date in the past!")
+      return true;
+    }
+    //Ignore and return false
+    else{
+      console.log('Record not old enough.')
+      return false;
+    }
+  }
+  //Throw error for issues with spreadsheet
+  else{
+    throw new Error('return_date not a Date object! Check spreadsheet!')
+  }
+}
+
+function main(){
+  //Get values
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const records_sheet = ss.getSheetByName('Historical Record');
+  const values = records_sheet.getDataRange().getValues();
+
+  //Iterate through rows (skip headers) and delete if old enough
+  for (let r = 1; r < values.length; r++){
+    const row = values[r];
+    const return_date = row[3]
+    console.log(`Departure Date: ${return_date}`)
+    
+    if (checkDates(return_date)){
+      console.log(`Deleting record for ${row[1]}. ${return_date} over 30 days old.`)
+      records_sheet.deleteRow(r);
+    }
+  }
+}
+
