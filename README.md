@@ -1,5 +1,5 @@
 # NoCA
-Tech Stack: Python, PowerShell, Google Sheets API, Google Apps Script, Google Forms
+Tech Stack: Python, Pandas, Polars, TimedRotatingFileHandler, PowerShell, Google Sheets API, Google Apps Script, Google Forms
 
 This Python script uses the Google Sheets API to get information from a Google Form Response Sheet. With that information specific moves are made in ActiveDirectory using Powershell.
 
